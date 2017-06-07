@@ -19,8 +19,8 @@ payload=`cat`
 bucket=$(echo "$payload" | jq -r '.source.bucket')
 path=$(echo "$payload" | jq -r '.source.path // ""')
 options=$(echo "$payload" | jq -r '.source.options // [] | join(" ")')
+skip_download=$(echo "$payload" | jq -r '.source.skip_download // ""')
 working_directory=$(echo "$payload" | jq -r '.params.working_directory // "."')
-skip_download=$(echo "$payload" | jq -r '.params.skip_download // ""')
 
 # export for `aws` cli
 AWS_ACCESS_KEY_ID=$(echo "$payload" | jq -r '.source.access_key_id // ""')
@@ -32,7 +32,7 @@ if [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
   export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
 fi
 
-if [ "$skip_download" = "true" ]; then
+if [ -n "$skip_download" ]; then
   echo "Skipping downloading from S3..."
 else
   echo "Downloading from S3 to '$working_directory'..."

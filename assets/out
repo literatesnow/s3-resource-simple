@@ -18,6 +18,7 @@ fi
 payload=`cat`
 bucket=$(echo "$payload" | jq -r '.source.bucket')
 path=$(echo "$payload" | jq -r '.source.path // ""')
+skip_upload=$(echo "$payload" | jq -r '.source.skip_upload // ""')
 options=$(echo "$payload" | jq -r '.source.options // [] | join(" ")')
 working_directory=$(echo "$payload" | jq -r '.params.working_directory // "."')
 
@@ -31,8 +32,12 @@ if [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
   export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
 fi
 
-echo "Uploading to S3 from '$working_directory'..."
-eval aws s3 sync "$source/$working_directory" "s3://$bucket/$path" $options
-echo "...done."
+if [ -n "$skip_upload" ]; then
+  echo "Skipping upload to S3..."
+else
+  echo "Uploading to S3 from '$working_directory'..."
+  eval aws s3 sync "$source/$working_directory" "s3://$bucket/$path" $options
+  echo "...done."
+fi
 
 . "$(dirname $0)/emit.sh" >&3
